@@ -61,7 +61,7 @@ movies_schema = MovieSchema(many=True, strict=True)
 
 
 # Get All Movies
-@app.route("/movie", methods=["GET"])
+@app.route("/pencil/api/v1.0/movies", methods=["GET"])
 def get_movies():
     all_movies = Movie.query.all()
     result = movies_schema.dump(all_movies)
@@ -70,14 +70,14 @@ def get_movies():
 
 
 # Get Single Movie
-@app.route("/movie/<id>", methods=["GET"])
+@app.route("/pencil/api/v1.0/movies/<id>", methods=["GET"])
 def get_movie(id):
     movie = Movie.query.get(id)
     return movie_schema.jsonify(movie)
 
 
 # Create Movie
-@app.route("/movie", methods=["POST"])
+@app.route("/pencil/api/v1.0/movies", methods=["POST"])
 def add_movie():
     name = request.json["name"]
     year = request.json["year"]
@@ -102,7 +102,7 @@ def add_movie():
 
 
 # Update Movie
-@app.route("/movie/<id>", methods=["PUT"])
+@app.route("/pencil/api/v1.0/movies/<id>", methods=["PUT"])
 def update_movie(id):
     movie = Movie.query.get(id)
 
@@ -138,7 +138,7 @@ def update_movie(id):
 
 
 # Delete Movie
-@app.route("/movie/<id>", methods=["DELETE"])
+@app.route("/pencil/api/v1.0/movies/<id>", methods=["DELETE"])
 def delete_movie(id):
     movie = Movie.query.get(id)
     db.session.delete(movie)
