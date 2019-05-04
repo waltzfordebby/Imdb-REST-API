@@ -1,27 +1,13 @@
-from flask import Flask, request, jsonify, abort, make_response
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow, fields
-from models.version_1 import *
-from schemas.version_1 import *
+from flask import request, jsonify, abort, make_response, Blueprint
+from pencil.models.version_1 import *
+from pencil.schemas.version_1 import *
 
 
-# Init app
-app = Flask(__name__)
-
-# Database
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://waltzfordebby:password@localhost/imdb2"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-# app.config["JSON_SORT_KEYS"] = False
-
-# Init db
-db = SQLAlchemy(app)
-
-# Init ma
-ma = Marshmallow(app)
+pencil = Blueprint("pencil", __name__)
 
 
 # Get All Movies
-@app.route("/pencil/api/v1.0/movies", methods=["GET"])
+@pencil.route("/pencil/api/v1.0/movies", methods=["GET"])
 def get_movies():
     all_movies = Movie.query.all()
     result = movies_schema.dump(all_movies)
@@ -29,15 +15,8 @@ def get_movies():
     return jsonify(result.data)
 
 
-# # Get Single Movie
-# @app.route("/pencil/api/v1.0/movies/<id>", methods=["GET"])
-# def get_movie(id):
-#     movie = Movie.query.get(id)
-#     return movie_schema.jsonify(movie)
-
-
 # Create Movie
-@app.route("/pencil/api/v1.0/movies", methods=["POST"])
+@pencil.route("/pencil/api/v1.0/movies", methods=["POST"])
 def add_movie():
     genre_container = []
     director_container = []
@@ -149,59 +128,3 @@ def add_movie():
         r_genre_container.append({"id": genre.id, "name": genre.name})
 
     return movie_schema.jsonify(movie)
-
-# # Update Movie
-# @app.route("/pencil/api/v1.0/movies/<id>", methods=["PUT"])
-# def update_movie(id):
-#     movie = Movie.query.get(id)
-
-#     name = request.json["name"]
-#     year = request.json["year"]
-#     rating = request.json["rating"]
-#     runtime = request.json["runtime"]
-#     genre = request.json["genre"]
-#     imdb_score = request.json["imdb_score"]
-#     metascore = request.json["metascore"]
-#     synopsis = request.json["synopsis"]
-#     vote = request.json["vote"]
-#     gross = request.json["gross"]
-#     director = request.json["director"]
-#     stars = request.json["stars"]
-
-#     movie.name = name
-#     movie.year = year
-#     movie.rating = rating
-#     movie.runtime = runtime
-#     movie.genre = genre
-#     movie.imdb_score = imdb_score
-#     movie.metascore = metascore
-#     movie.synopsis = synopsis
-#     movie.vote = vote
-#     movie.gross = gross
-#     movie.director = director
-#     movie.stars = stars
-
-#     db.session.commit()
-
-#     return movie_schema.jsonify(movie)
-
-
-# # Delete Movie
-# @app.route("/pencil/api/v1.0/movies/<id>", methods=["DELETE"])
-# def delete_movie(id):
-#     movie = Movie.query.get(id)
-#     db.session.delete(movie)
-#     db.session.commit()
-
-#     return movie_schema.jsonify(movie)
-
-
-# # Error Handlers
-# @app.errorhandler(404)
-# def not_found(error):
-#     return make_response(jsonify({"error": "Not Found"}), 404)
-
-
-# Run Server
-if __name__ == "__main__":
-    app.run(debug=True)

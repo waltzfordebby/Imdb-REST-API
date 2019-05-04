@@ -1,5 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-
+from pencil import db
 
 genres = db.Table("genres",
                   db.Column("movie_id", db.Integer, db.ForeignKey(
@@ -24,10 +23,10 @@ stars = db.Table("stars",
 
 
 class Movie(db.Model):
-    id = db.Column(db.Intenger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
     runtime = db.Column(db.Integer, nullable=False)
-    synopsis = db.Column(db.Text,  unique=True, nullable=False)
+    synopsis = db.Column(db.Text, nullable=False)
     vote = db.Column(db.Integer, nullable=False)
     gross = db.Column(db.Integer, nullable=False)
     genres = db.relationship("Genre", secondary=genres,
@@ -45,12 +44,16 @@ class Movie(db.Model):
     stars = db.relationship("Star", secondary=stars,
                             lazy="subquery", backref=db.backref("movies", lazy=True))
 
-    def __init__(self, name, runtime, synopsis, vote, gross):
+    def __init__(self, name, runtime, synopsis, vote, gross, year_id, rating_id, imdb_score_id, meta_score_id):
         self.name = name
         self.runtime = runtime
         self.synopsis = synopsis
         self.vote = vote
         self.gross = gross
+        self.year_id = year_id
+        self.rating_id = rating_id
+        self.imdb_score_id = imdb_score_id
+        self.meta_score_id = meta_score_id
 
 
 class Year(db.Model):
@@ -64,7 +67,7 @@ class Year(db.Model):
 
 class Rating(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
-    name = db.Column(db.String(10), nullalble=True)
+    name = db.Column(db.String(10), nullable=True)
     movies = db.relationship("Movie", backref="rating", lazy=True)
 
     def __init__(self, name):
@@ -80,8 +83,8 @@ class Genre(db.Model):
 
 
 class ImdbScore(db.Model):
-    id = db.Column(db.Intenger, primary_key=True)
-    score = db.Column(db.Float, nullable=False, unique=True)
+    id = db.Column(db.Integer, primary_key=True)
+    score = db.Column(db.String(10), nullable=False, unique=True)
     movies = db.relationship("Movie", backref="imdb_score", lazy=True)
 
     def __init__(self, score):
