@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, abort, make_response
 from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
+from flask_marshmallow import Marshmallow, fields
 
 
 # Init app
@@ -9,6 +9,7 @@ app = Flask(__name__)
 # Database
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://waltzfordebby:password@localhost/imdb2"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+# app.config["JSON_SORT_KEYS"] = False
 
 # Init db
 db = SQLAlchemy(app)
@@ -100,7 +101,7 @@ class Genre(db.Model):
 
 class ImdbScore(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    score = db.Column(db.Float, nullable=False, unique=True)
+    score = db.Column(db.String(10), nullable=False, unique=True)
     movies = db.relationship("Movie", backref="imdb_score", lazy=True)
 
     def __init__(self, score):
@@ -131,25 +132,122 @@ class Star(db.Model):
     def __init__(self, name):
         self.name = name
 
+
+# Year Schema
+class YearSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "name"]
+
+
+# Init Schema
+year_schema = YearSchema(strict=True)
+years_schema = YearSchema(many=True, strict=True)
+
+
+# Rating Schema
+class RatingSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "name"]
+
+
+# Init Schema
+rating_schema = RatingSchema(strict=True)
+ratings_schema = RatingSchema(many=True, strict=True)
+
+
+# ImdbScore Schema
+class ImdbScoreSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "score"]
+
+
+# Init Schema
+imdb_score_schema = ImdbScoreSchema(strict=True)
+imdb_scores_schema = ImdbScoreSchema(many=True, strict=True)
+
+
+# MetaScore Schema
+class MetaScoreSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "score"]
+
+
+# Init Schema
+meta_score_schema = MetaScoreSchema(strict=True)
+meta_scores_schema = MetaScoreSchema(many=True, strict=True)
+
+
+# Genre Schema
+class GenreSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "name"]
+
+
+# Init Schema
+genre_schema_ = GenreSchema(strict=True)
+genres_schema = GenreSchema(many=True, strict=True)
+
+
+# Director Schema
+class DirectorSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "name"]
+
+
+# Init Schema
+director_schema = DirectorSchema(strict=True)
+directors_schema = DirectorSchema(many=True, strict=True)
+
+
+# Director Schema
+class DirectorSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "name"]
+
+
+# Init Schema
+director_schema = DirectorSchema(strict=True)
+directors_schema = DirectorSchema(many=True, strict=True)
+
+
+# Star Schema
+class StarSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "name"]
+
+
+# Init Schema
+star_schema = StarSchema(strict=True)
+stars_schema = StarSchema(many=True, strict=True)
+
+
 # Movie Schema
-# class MovieSchema(ma.Schema):
-#     class Meta:
-#         fields = ("id", "name", "year", "rating", "runtime", "genre",
-#                   "imdb_score", "metascore", "synopsis", "vote", "gross", "director", "stars")
+class MovieSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "name", "runtime", "synopsis",
+                  "vote", "gross", "year", "rating", "imdb_score", "meta_score", "genres", "directors", "stars")
+
+    year = ma.Nested(YearSchema)
+    rating = ma.Nested(RatingSchema)
+    imdb_score = ma.Nested(ImdbScoreSchema)
+    meta_score = ma.Nested(MetaScoreSchema)
+    genres = ma.List(ma.Nested(GenreSchema))
+    directors = ma.List(ma.Nested(DirectorSchema))
+    stars = ma.List(ma.Nested(StarSchema))
 
 
-# # Init Schema
-# movie_schema = MovieSchema(strict=True)
-# movies_schema = MovieSchema(many=True, strict=True)
+# Init Schema
+movie_schema = MovieSchema(strict=True)
+movies_schema = MovieSchema(many=True, strict=True)
 
 
-# # Get All Movies
-# @app.route("/pencil/api/v1.0/movies", methods=["GET"])
-# def get_movies():
-#     all_movies = Movie.query.all()
-#     result = movies_schema.dump(all_movies)
+# Get All Movies
+@app.route("/pencil/api/v1.0/movies", methods=["GET"])
+def get_movies():
+    all_movies = Movie.query.all()
+    result = movies_schema.dump(all_movies)
 
-#     return jsonify(result.data)
+    return jsonify(result.data)
 
 
 # # Get Single Movie
@@ -179,9 +277,6 @@ def add_movie():
     r_directors = request.json["director"]
     r_stars = request.json["stars"]
 
-    # new_movie = Movie(name, year, rating, runtime, genre, imdb_score,
-    #                   metascore, synopsis, vote, gross, director, stars)
-
     year = Year.query.filter_by(name=r_year).first()
 
     if year is None:
@@ -196,7 +291,7 @@ def add_movie():
         db.session.add(rating)
         db.session.commit()
 
-    imdb_score = MetaScore.query.filter_by(score=r_imdb_score).first()
+    imdb_score = ImdbScore.query.filter_by(score=r_imdb_score).first()
 
     if imdb_score is None:
         imdb_score = ImdbScore(r_imdb_score)
@@ -251,18 +346,46 @@ def add_movie():
         db.session.add(movie)
         db.session.commit()
 
-        for genre in genre_container:
-            movie.genres.append(genre)
+        for genre_content in genre_container:
+            movie.genres.append(genre_content)
 
-        for director in director_container:
-            movie.directors.append(director)
+        for director_content in director_container:
+            movie.directors.append(director_content)
 
-        for star in star_container:
-            movie.stars.append()
+        for star_content in star_container:
+            movie.stars.append(star_content)
 
         db.session.commit()
 
-    return movie
+    r_star_container = []
+    for star in movie.stars:
+        r_star_container.append({"id": star.id, "name": star.name})
+
+    r_director_container = []
+    for director in movie.stars:
+        r_director_container.append({"id": director.id, "name": director.name})
+
+    r_genre_container = []
+    for genre in movie.genres:
+        r_genre_container.append({"id": genre.id, "name": genre.name})
+
+    return movie_schema.jsonify(movie)
+    # return jsonify(
+    #     name=movie.name,
+    #     runtime=movie.runtime,
+    #     synopsis=movie.synopsis,
+    #     vote=movie.vote,
+    #     gross=movie.gross,
+    #     year={"id": movie.year.id, "year": movie.year.name},
+    #     rating={"id": movie.rating.id, "rating": movie.rating.name},
+    #     imdb_score={"id": movie.imdb_score.id,
+    #                 "score": movie.imdb_score.score},
+    #     meta_score={"id": movie.meta_score.id,
+    #                 "score": movie.meta_score.score},
+    #     stars=r_star_container,
+    #     directors=r_director_container,
+    #     genres=r_genre_container
+    # )
 
 # # Update Movie
 # @app.route("/pencil/api/v1.0/movies/<id>", methods=["PUT"])
