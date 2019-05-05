@@ -44,22 +44,23 @@ class Movie(db.Model):
     stars = db.relationship("Star", secondary=stars,
                             lazy="subquery", backref=db.backref("movies", lazy=True))
 
-    def __init__(self, name, runtime, synopsis, vote, gross, year_id, rating_id, imdb_score_id, meta_score_id):
+    def __init__(self, name, runtime, synopsis, vote, gross, year, rating, imdb_score, meta_score):
         self.name = name
         self.runtime = runtime
         self.synopsis = synopsis
         self.vote = vote
         self.gross = gross
-        self.year_id = year_id
-        self.rating_id = rating_id
-        self.imdb_score_id = imdb_score_id
-        self.meta_score_id = meta_score_id
+        self.year = year
+        self.rating = rating
+        self.imdb_score = imdb_score
+        self.meta_score = meta_score
 
 
 class Year(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(4), unique=True, nullable=False)
-    movies = db.relationship("Movie", backref="year", lazy=True)
+    movies = db.relationship(
+        "Movie", backref=db.backref("year", lazy="subquery"))
 
     def __init__(self, name):
         self.name = name
@@ -68,7 +69,8 @@ class Year(db.Model):
 class Rating(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     name = db.Column(db.String(10), nullable=True)
-    movies = db.relationship("Movie", backref="rating", lazy=True)
+    movies = db.relationship(
+        "Movie", backref=db.backref("rating", lazy="subquery"))
 
     def __init__(self, name):
         self.name = name
@@ -85,7 +87,8 @@ class Genre(db.Model):
 class ImdbScore(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     score = db.Column(db.String(10), nullable=False, unique=True)
-    movies = db.relationship("Movie", backref="imdb_score", lazy=True)
+    movies = db.relationship(
+        "Movie", backref=db.backref("imdb_score", lazy="subquery"))
 
     def __init__(self, score):
         self.score = score
@@ -94,7 +97,8 @@ class ImdbScore(db.Model):
 class MetaScore(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     score = db.Column(db.Integer, nullable=False, unique=True)
-    movies = db.relationship("Movie", backref="meta_score", lazy=True)
+    movies = db.relationship(
+        "Movie", backref=db.backref("meta_score", lazy="subquery"))
 
     def __init__(self, score):
         self.score = score
