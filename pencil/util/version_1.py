@@ -1,22 +1,21 @@
 from pencil import db
 
 
-def create_row_list(container, model):
+def create_record_list(container, model):
 
     for content in container:
         column = model.query.filter_by(name=content).first()
 
         if column is None:
-            column = model(l)
+            column = model(content)
             db.session.add(column)
             db.session.commit()
 
         yield column
 
 
-def add_record(value, model):
+def add_record_string(value, model):
 
-    print(type(model))
     column = model.query.filter_by(name=value).first()
 
     if column is None:
@@ -29,7 +28,7 @@ def add_record(value, model):
     return column
 
 
-def add_record2(value, model):
+def add_record_integer(value, model):
 
     column = model.query.filter_by(score=value).first()
 
