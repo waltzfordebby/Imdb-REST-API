@@ -18,6 +18,9 @@ def create_app(config_class=Config):
 
     from pencil.routes.version1 import pencil
 
+    from pencil.errors.handlers import errors
+
     app.register_blueprint(pencil)
+    app.register_blueprint(errors)
 
     return app
